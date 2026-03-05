@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Josefin+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 96%;
+    --foreground: 150 10% 20%;
+
+    --card: 40 30% 94%;
+    --card-foreground: 150 10% 20%;
+
+    --popover: 40 33% 96%;
+    --popover-foreground: 150 10% 20%;
+
+    --primary: 147 25% 37%;
+    --primary-foreground: 40 33% 96%;
+
+    --secondary: 40 25% 88%;
+    --secondary-foreground: 150 10% 20%;
+
+    --muted: 40 20% 90%;
+    --muted-foreground: 150 8% 45%;
+
+    --accent: 36 50% 65%;
+    --accent-foreground: 150 10% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 40 20% 85%;
+    --input: 40 20% 85%;
+    --ring: 147 25% 37%;
+
+    --radius: 0.25rem;
+
+    --sidebar-background: 40 30% 94%;
+    --sidebar-foreground: 150 10% 20%;
+    --sidebar-primary: 147 25% 37%;
+    --sidebar-primary-foreground: 40 33% 96%;
+    --sidebar-accent: 40 25% 88%;
+    --sidebar-accent-foreground: 150 10% 20%;
+    --sidebar-border: 40 20% 85%;
+    --sidebar-ring: 147 25% 37%;
+
+    /* Custom wedding tokens */
+    --sage: 147 25% 37%;
+    --sage-light: 147 20% 80%;
+    --sage-dark: 147 25% 25%;
+    --cream: 40 33% 96%;
+    --cream-dark: 40 25% 88%;
+    --gold: 36 50% 65%;
+    --gold-light: 36 40% 80%;
+    --text-dark: 150 10% 20%;
+    --text-light: 150 8% 45%;
+
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Josefin Sans', sans-serif;
+  }
+
+  .dark {
+    --background: 150 10% 10%;
+    --foreground: 40 33% 96%;
+    --card: 150 10% 14%;
+    --card-foreground: 40 33% 96%;
+    --popover: 150 10% 10%;
+    --popover-foreground: 40 33% 96%;
+    --primary: 147 25% 55%;
+    --primary-foreground: 150 10% 10%;
+    --secondary: 150 10% 18%;
+    --secondary-foreground: 40 33% 96%;
+    --muted: 150 10% 18%;
+    --muted-foreground: 40 20% 70%;
+    --accent: 36 50% 55%;
+    --accent-foreground: 40 33% 96%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 150 10% 20%;
+    --input: 150 10% 20%;
+    --ring: 147 25% 55%;
+    --sidebar-background: 150 10% 10%;
+    --sidebar-foreground: 40 33% 96%;
+    --sidebar-primary: 147 25% 55%;
+    --sidebar-primary-foreground: 150 10% 10%;
+    --sidebar-accent: 150 10% 18%;
+    --sidebar-accent-foreground: 40 33% 96%;
+    --sidebar-border: 150 10% 20%;
+    --sidebar-ring: 147 25% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .wedding-section {
+    @apply py-20 md:py-28 px-6;
+  }
+
+  .wedding-heading {
+    font-family: var(--font-display);
+    @apply text-4xl md:text-6xl font-light tracking-wide;
+  }
+
+  .wedding-subheading {
+    font-family: var(--font-display);
+    @apply text-2xl md:text-3xl font-light italic;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .wedding-body {
+    font-family: var(--font-body);
+    @apply text-base md:text-lg font-light leading-relaxed tracking-wide;
+  }
+
+  .wedding-divider {
+    @apply w-24 h-px mx-auto my-8;
+    background: hsl(var(--gold));
+  }
+
+  .wedding-card {
+    @apply p-8 md:p-10 rounded-sm;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--gold-light));
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--cream));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--sage-light));
+  border-radius: 3px;
+}
