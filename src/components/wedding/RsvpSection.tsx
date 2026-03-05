@@ -1,15 +1,131 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, AlertCircle, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+type RsvpStatus = "idle" | "loading" | "confirmed" | "already_confirmed" | "not_found";
 
 const RsvpSection = () => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<RsvpStatus>("idle");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [guestCount, setGuestCount] = useState("Somente eu");
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus("loading");
+
+    const trimmedName = name.trim();
+
+    // Check if guest is in the list (case-insensitive)
+    const { data: guests, error: guestError } = await supabase
+      .from("guests")
+      .select("id")
+      .ilike("name", trimmedName);
+
+    if (guestError || !guests || guests.length === 0) {
+      setStatus("not_found");
+      return;
+    }
+
+    const guest = guests[0];
+
+    // Check if already confirmed
+    const { data: existing } = await supabase
+      .from("rsvp_confirmations")
+      .select("id")
+      .eq("guest_id", guest.id);
+
+    if (existing && existing.length > 0) {
+      setStatus("already_confirmed");
+      return;
+    }
+
+    // Parse guest count
+    const countMap: Record<string, number> = {
+      "Somente eu": 0,
+      "1 acompanhante": 1,
+      "2 acompanhantes": 2,
+      "3 acompanhantes": 3,
+    };
+
+    const { error: insertError } = await supabase
+      .from("rsvp_confirmations")
+      .insert({
+        guest_id: guest.id,
+        guest_count: countMap[guestCount] ?? 0,
+        message: message.trim() || null,
+      });
+
+    if (insertError) {
+      console.error("Erro ao confirmar presença:", insertError);
+      return;
+    }
+
+    setStatus("confirmed");
+  };
+
+  const renderFeedback = () => {
+    if (status === "confirmed") {
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center wedding-card"
+        >
+          <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
+          <h3 className="font-display text-3xl text-foreground mb-2">Obrigado!</h3>
+          <p className="wedding-body text-muted-foreground">
+            Sua presença confirmada nos enche de alegria. Mal podemos esperar para
+            celebrar este dia especial com você!
+          </p>
+        </motion.div>
+      );
+    }
+
+    if (status === "already_confirmed") {
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center wedding-card"
+        >
+          <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-4" />
+          <h3 className="font-display text-3xl text-foreground mb-2">Já confirmado!</h3>
+          <p className="wedding-body text-muted-foreground">
+            Você já confirmou sua presença anteriormente. Nos vemos na festa! 🎉
+          </p>
+        </motion.div>
+      );
+    }
+
+    if (status === "not_found") {
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center wedding-card"
+        >
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h3 className="font-display text-3xl text-foreground mb-2">Nome não encontrado</h3>
+          <p className="wedding-body text-muted-foreground mb-4">
+            Infelizmente o nome informado não está na lista de convidados. 
+            Por favor, verifique se digitou corretamente ou entre em contato com os noivos.
+          </p>
+          <button
+            onClick={() => setStatus("idle")}
+            className="font-body text-sm tracking-[0.15em] uppercase text-primary hover:underline transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </motion.div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -28,19 +144,8 @@ const RsvpSection = () => {
           <div className="wedding-divider" />
         </motion.div>
 
-        {submitted ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center wedding-card"
-          >
-            <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h3 className="font-display text-3xl text-foreground mb-2">Obrigado!</h3>
-            <p className="wedding-body text-muted-foreground">
-              Sua presença confirmada nos enche de alegria. Mal podemos esperar para
-              celebrar este dia especial com você!
-            </p>
-          </motion.div>
+        {status !== "idle" && status !== "loading" ? (
+          renderFeedback()
         ) : (
           <motion.form
             initial={{ opacity: 0, y: 30 }}
@@ -57,6 +162,8 @@ const RsvpSection = () => {
                 <input
                   type="text"
                   required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                   placeholder="Seu nome"
                 />
@@ -68,6 +175,8 @@ const RsvpSection = () => {
                 <input
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                   placeholder="seu@email.com"
                 />
@@ -79,6 +188,8 @@ const RsvpSection = () => {
                 Número de acompanhantes
               </label>
               <select
+                value={guestCount}
+                onChange={(e) => setGuestCount(e.target.value)}
                 className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
               >
                 <option>Somente eu</option>
@@ -94,6 +205,8 @@ const RsvpSection = () => {
               </label>
               <textarea
                 rows={3}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
                 placeholder="Deixe uma mensagem carinhosa..."
               />
@@ -101,9 +214,10 @@ const RsvpSection = () => {
 
             <button
               type="submit"
-              className="w-full bg-primary text-primary-foreground font-body text-sm tracking-[0.2em] uppercase py-4 rounded-sm hover:bg-sage-dark transition-colors duration-300"
+              disabled={status === "loading"}
+              className="w-full bg-primary text-primary-foreground font-body text-sm tracking-[0.2em] uppercase py-4 rounded-sm hover:bg-sage-dark transition-colors duration-300 disabled:opacity-50"
             >
-              Confirmar Presença
+              {status === "loading" ? "Verificando..." : "Confirmar Presença"}
             </button>
           </motion.form>
         )}
