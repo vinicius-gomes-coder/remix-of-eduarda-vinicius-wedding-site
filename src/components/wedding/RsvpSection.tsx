@@ -76,11 +76,13 @@ const RsvpSection = () => {
       "3 acompanhantes": 3,
     };
 
+    const guestCountNum = countMap[guestCount] ?? 0;
+
     const { error: insertError } = await supabase
       .from("rsvp_confirmations")
       .insert({
         guest_id: guest.id,
-        guest_count: countMap[guestCount] ?? 0,
+        guest_count: guestCountNum,
         message: message.trim() || null,
       });
 
@@ -88,6 +90,16 @@ const RsvpSection = () => {
       console.error("Erro ao confirmar presença:", insertError);
       return;
     }
+
+    // Send confirmation emails (fire and forget)
+    supabase.functions.invoke("send-rsvp-emails", {
+      body: {
+        guestName: trimmedName,
+        guestEmail: email.trim() || null,
+        guestCount: guestCountNum,
+        message: message.trim() || null,
+      },
+    }).catch((err) => console.error("Erro ao enviar emails:", err));
 
     setStatus("confirmed");
   };
