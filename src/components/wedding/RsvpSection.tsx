@@ -1,9 +1,11 @@
-import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Heart, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type RsvpStatus = "idle" | "loading" | "confirmed" | "already_confirmed" | "not_found";
+
+type GuestSuggestion = { id: string; name: string };
 
 const RsvpSection = () => {
   const ref = useRef(null);
@@ -13,6 +15,28 @@ const RsvpSection = () => {
   const [email, setEmail] = useState("");
   const [guestCount, setGuestCount] = useState("Somente eu");
   const [message, setMessage] = useState("");
+  const [suggestions, setSuggestions] = useState<GuestSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const searchGuests = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const { data } = await supabase
+      .from("guests")
+      .select("id, name")
+      .ilike("name", `%${query.trim()}%`)
+      .limit(5);
+    setSuggestions(data || []);
+    setShowSuggestions((data || []).length > 0);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => searchGuests(name), 300);
+    return () => clearTimeout(timer);
+  }, [name, searchGuests]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +179,7 @@ const RsvpSection = () => {
             className="wedding-card space-y-6"
           >
             <div className="grid md:grid-cols-2 gap-6">
-              <div>
+              <div className="relative">
                 <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-2 block">
                   Nome completo
                 </label>
@@ -164,9 +188,37 @@ const RsvpSection = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-                  placeholder="Seu nome"
+                  placeholder="Comece a digitar seu nome..."
+                  autoComplete="off"
                 />
+                <AnimatePresence>
+                  {showSuggestions && (
+                    <motion.ul
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute z-10 w-full mt-1 bg-background border border-border rounded-sm shadow-lg overflow-hidden"
+                    >
+                      {suggestions.map((guest) => (
+                        <li
+                          key={guest.id}
+                          onMouseDown={() => {
+                            setName(guest.name);
+                            setShowSuggestions(false);
+                            setSuggestions([]);
+                          }}
+                          className="px-4 py-3 font-body text-sm text-foreground cursor-pointer hover:bg-accent transition-colors"
+                        >
+                          {guest.name}
+                        </li>
+                      ))}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
               </div>
               <div>
                 <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-2 block">
