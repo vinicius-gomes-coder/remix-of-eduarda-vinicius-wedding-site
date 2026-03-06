@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 type RsvpStatus = "idle" | "loading" | "confirmed" | "already_confirmed" | "not_found";
 
+type GuestSuggestion = { id: string; name: string };
+
 const RsvpSection = () => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
@@ -13,6 +15,28 @@ const RsvpSection = () => {
   const [email, setEmail] = useState("");
   const [guestCount, setGuestCount] = useState("Somente eu");
   const [message, setMessage] = useState("");
+  const [suggestions, setSuggestions] = useState<GuestSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const searchGuests = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const { data } = await supabase
+      .from("guests")
+      .select("id, name")
+      .ilike("name", `%${query.trim()}%`)
+      .limit(5);
+    setSuggestions(data || []);
+    setShowSuggestions((data || []).length > 0);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => searchGuests(name), 300);
+    return () => clearTimeout(timer);
+  }, [name, searchGuests]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
