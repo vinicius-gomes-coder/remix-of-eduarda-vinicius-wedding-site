@@ -37,7 +37,6 @@ const RsvpSection = () => {
 
   const [phase, setPhase] = useState<RsvpPhase>("form");
   const [guests, setGuests] = useState<GuestEntry[]>([newEntry()]);
-  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [confirmedNames, setConfirmedNames] = useState<string[]>([]);
 
