@@ -15,6 +15,7 @@ type GuestSuggestion = { id: string; name: string };
 type GuestEntry = {
   id: string;
   name: string;
+  email: string;
   status: "idle" | "valid" | "not_found" | "already_confirmed";
   guestDbId?: string;
 };
@@ -25,6 +26,7 @@ let entryIdCounter = 0;
 const newEntry = (): GuestEntry => ({
   id: `entry-${++entryIdCounter}`,
   name: "",
+  email: "",
   status: "idle",
   guestDbId: undefined,
 });
@@ -35,7 +37,6 @@ const RsvpSection = () => {
 
   const [phase, setPhase] = useState<RsvpPhase>("form");
   const [guests, setGuests] = useState<GuestEntry[]>([newEntry()]);
-  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [confirmedNames, setConfirmedNames] = useState<string[]>([]);
 
@@ -77,6 +78,13 @@ const RsvpSection = () => {
     );
   };
 
+  const updateGuestEmail = (entryId: string, email: string) => {
+    setGuests((prev) =>
+      prev.map((g) =>
+        g.id === entryId ? { ...g, email } : g,
+      ),
+    );
+  };
   const selectSuggestion = (entryId: string, guest: GuestSuggestion) => {
     setGuests((prev) =>
       prev.map((g) =>
@@ -157,9 +165,10 @@ const RsvpSection = () => {
 
     // All valid — confirm and save email
     for (const guest of toConfirm) {
+      const entry = validated.find((g) => g.id === guest.id);
       await supabase
         .from("convidados" as any)
-        .update({ confirmed: true, email: email.trim() || null })
+        .update({ confirmed: true, email: entry?.email?.trim() || null })
         .eq("id", guest.guestDbId);
     }
 
@@ -286,6 +295,13 @@ const RsvpSection = () => {
                       </button>
                     )}
                   </div>
+                  <input
+                    type="email"
+                    value={entry.email}
+                    onChange={(e) => updateGuestEmail(entry.id, e.target.value)}
+                    className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors mt-2"
+                    placeholder="E-mail (opcional)"
+                  />
                   {entry.status === "not_found" && (
                     <p className="flex items-center gap-1 mt-1 text-xs text-destructive font-body">
                       <AlertCircle className="w-3 h-3" /> Nome não encontrado na
@@ -310,18 +326,6 @@ const RsvpSection = () => {
             </button>
           </div>
 
-          <div>
-            <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-2 block">
-              Seu e-mail
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-              placeholder="seuemail@exemplo.com"
-            />
-          </div>
 
           <div>
             <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-2 block">
