@@ -295,6 +295,13 @@ const RsvpSection = () => {
                       </button>
                     )}
                   </div>
+                  <input
+                    type="email"
+                    value={entry.email}
+                    onChange={(e) => updateGuestEmail(entry.id, e.target.value)}
+                    className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors mt-2"
+                    placeholder="E-mail (opcional)"
+                  />
                   {entry.status === "not_found" && (
                     <p className="flex items-center gap-1 mt-1 text-xs text-destructive font-body">
                       <AlertCircle className="w-3 h-3" /> Nome não encontrado na
