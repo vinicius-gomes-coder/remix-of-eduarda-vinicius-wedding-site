@@ -320,7 +320,7 @@ const RsvpSection = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
               placeholder="seuemail@exemplo.com"
-            />
+          </div>
 
           <div>
             <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-2 block">
