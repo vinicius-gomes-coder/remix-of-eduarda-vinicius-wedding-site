@@ -44,7 +44,9 @@ const HeroSection = () => {
           className="flex items-center justify-center gap-6 mb-4"
         >
           <div className="w-16 h-px bg-gold" />
-          <span className="font-display text-3xl md:text-4xl italic text-gold">&</span>
+          <span className="font-display text-3xl md:text-4xl italic text-gold">
+            &
+          </span>
           <div className="w-16 h-px bg-gold" />
         </motion.div>
 
@@ -64,10 +66,10 @@ const HeroSection = () => {
           className="space-y-2"
         >
           <p className="font-body text-lg tracking-[0.15em] text-foreground">
-            15 de Novembro de 2025
+            15 de Maio de 2026
           </p>
-          <p className="font-body text-sm tracking-[0.2em] uppercase text-muted-foreground">
-            São Paulo, Brasil
+          <p className="font-body text-sm tracking-[0.2em] uppercase text-foreground">
+            Belo Horizonte, Brasil
           </p>
         </motion.div>
 

@@ -46,19 +46,19 @@ const OurStorySection = () => {
             className="space-y-6"
           >
             <p className="wedding-body text-foreground">
-              Nos conhecemos em uma tarde de outono, quando o acaso nos uniu em um
-              café aconchegante no centro da cidade. O que começou como uma conversa
-              despretensiosa se transformou na mais bela história de amor.
+              Nos conhecemos da forma mais atual possível, pela internet! O que
+              começou como um encontro despretensioso no cinema para assistir
+              shazam, se transformou na mais bela história de amor.
             </p>
             <p className="wedding-body text-foreground">
-              Desde aquele dia, cada momento juntos tem sido uma descoberta. 
-              Compartilhamos sonhos, risadas e a certeza de que fomos feitos um 
+              Desde aquele dia, cada momento juntos tem sido uma descoberta.
+              Compartilhamos sonhos, risadas e a certeza de que fomos feitos um
               para o outro.
             </p>
             <p className="wedding-body text-foreground">
-              Agora, estamos prontos para dar o próximo passo e celebrar o nosso 
-              amor com as pessoas mais especiais das nossas vidas. Você faz parte 
-              dessa história.
+              Agora, estamos prontos para dar o próximo passo e celebrar o nosso
+              amor com as pessoas mais especiais das nossas vidas. Você faz
+              parte dessa história.
             </p>
             <div className="pt-4">
               <p className="font-display text-2xl italic text-primary">

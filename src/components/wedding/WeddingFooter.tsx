@@ -7,7 +7,7 @@ const WeddingFooter = () => {
         Eduarda <span className="text-gold-light">&</span> Vinicius
       </p>
       <p className="font-body text-sm tracking-[0.2em] opacity-70 mb-6">
-        15 de Novembro de 2025
+        15 de Maio de 2026
       </p>
       <Heart className="w-5 h-5 mx-auto opacity-50" />
       <p className="font-body text-xs tracking-[0.15em] opacity-40 mt-6">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-const WEDDING_DATE = new Date("2025-11-15T16:00:00");
+const WEDDING_DATE = new Date("2026-05-15T17:00:00");
 
 interface TimeLeft {
   dias: number;
@@ -11,7 +11,12 @@ interface TimeLeft {
 }
 
 const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ dias: 0, horas: 0, minutos: 0, segundos: 0 });
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({
+    dias: 0,
+    horas: 0,
+    minutos: 0,
+    segundos: 0,
+  });
 
   useEffect(() => {
     const calc = () => {

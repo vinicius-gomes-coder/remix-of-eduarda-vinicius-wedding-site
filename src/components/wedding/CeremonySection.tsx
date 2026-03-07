@@ -9,9 +9,9 @@ const CeremonySection = () => {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   const details = [
-    { icon: Calendar, label: "Data", value: "15 de Novembro de 2025" },
-    { icon: Clock, label: "Horário", value: "16h00" },
-    { icon: MapPin, label: "Local", value: "Espaço Villa Garden" },
+    { icon: Calendar, label: "Data", value: "15 de Maio de 2026" },
+    { icon: Clock, label: "Horário", value: "17h00" },
+    { icon: MapPin, label: "Local", value: "Casa Orla" },
   ];
 
   return (
@@ -62,16 +62,18 @@ const CeremonySection = () => {
                   <p className="font-body text-xs tracking-[0.2em] uppercase text-muted-foreground mb-1">
                     {item.label}
                   </p>
-                  <p className="font-display text-xl text-foreground">{item.value}</p>
+                  <p className="font-display text-xl text-foreground">
+                    {item.value}
+                  </p>
                 </div>
               </motion.div>
             ))}
 
             <div className="pt-4">
               <p className="wedding-body text-muted-foreground">
-                Rua das Flores, 1234 — Jardim Botânico
+                Avenida Otacílio Negrão de Lima, 17171 — Pampulha
                 <br />
-                São Paulo, SP — Brasil
+                Belo Horizonte, MG — Brasil
               </p>
             </div>
           </motion.div>
