@@ -15,6 +15,7 @@ type GuestSuggestion = { id: string; name: string };
 type GuestEntry = {
   id: string;
   name: string;
+  email: string;
   status: "idle" | "valid" | "not_found" | "already_confirmed";
   guestDbId?: string;
 };
@@ -25,6 +26,7 @@ let entryIdCounter = 0;
 const newEntry = (): GuestEntry => ({
   id: `entry-${++entryIdCounter}`,
   name: "",
+  email: "",
   status: "idle",
   guestDbId: undefined,
 });
