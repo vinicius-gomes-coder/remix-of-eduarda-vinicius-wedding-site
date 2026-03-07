@@ -1,0 +1,4 @@
+project_id = "pmowhvxvjxumpwmrfiyu"
+
+[functions.send-rsvp-emails]
+verify_jwt = false

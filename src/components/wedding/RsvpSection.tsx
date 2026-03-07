@@ -118,19 +118,21 @@ const RsvpSection = () => {
       if (!found || found.length === 0) {
         validated.push({ ...entry, status: "not_found" });
         continue;
-      }      
+      }
 
       if (found && found[0].confirmed) {
-        validated.push({ ...entry, status: "already_confirmed", guestDbId: found[0].id });
+        validated.push({
+          ...entry,
+          status: "already_confirmed",
+          guestDbId: found[0].id,
+        });
         continue;
       }
 
-      if (found && !found[0].confirmed) {       
+      if (found && !found[0].confirmed) {
         validated.push({ ...entry, status: "valid", guestDbId: found[0].id });
         continue;
       }
-
-      
     }
 
     setGuests(validated);
@@ -156,9 +158,10 @@ const RsvpSection = () => {
     const guestCountNum = toConfirm.length - 1; // companions = total - 1 (first person)
 
     for (const guest of toConfirm) {
-      await supabase.from("convidados")
-      .update({ confirmed: true })
-      .eq("id", guest.guestDbId);
+      await supabase
+        .from("convidados")
+        .update({ confirmed: true })
+        .eq("id", guest.guestDbId);
     }
 
     setConfirmedNames(toConfirm.map((g) => g.name.trim()));
