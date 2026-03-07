@@ -78,6 +78,13 @@ const RsvpSection = () => {
     );
   };
 
+  const updateGuestEmail = (entryId: string, email: string) => {
+    setGuests((prev) =>
+      prev.map((g) =>
+        g.id === entryId ? { ...g, email } : g,
+      ),
+    );
+  };
   const selectSuggestion = (entryId: string, guest: GuestSuggestion) => {
     setGuests((prev) =>
       prev.map((g) =>
