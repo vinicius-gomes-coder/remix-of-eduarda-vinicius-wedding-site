@@ -165,9 +165,10 @@ const RsvpSection = () => {
 
     // All valid — confirm and save email
     for (const guest of toConfirm) {
+      const entry = validated.find((g) => g.id === guest.id);
       await supabase
         .from("convidados" as any)
-        .update({ confirmed: true, email: email.trim() || null })
+        .update({ confirmed: true, email: entry?.email?.trim() || null })
         .eq("id", guest.guestDbId);
     }
 
