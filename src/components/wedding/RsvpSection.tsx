@@ -35,6 +35,7 @@ const RsvpSection = () => {
 
   const [phase, setPhase] = useState<RsvpPhase>("form");
   const [guests, setGuests] = useState<GuestEntry[]>([newEntry()]);
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [confirmedNames, setConfirmedNames] = useState<string[]>([]);
 
@@ -154,13 +155,11 @@ const RsvpSection = () => {
       return;
     }
 
-    // All valid — insert confirmations
-    const guestCountNum = toConfirm.length - 1; // companions = total - 1 (first person)
-
+    // All valid — confirm and save email
     for (const guest of toConfirm) {
       await supabase
-        .from("convidados")
-        .update({ confirmed: true })
+        .from("convidados" as any)
+        .update({ confirmed: true, email: email.trim() || null })
         .eq("id", guest.guestDbId);
     }
 
@@ -309,6 +308,19 @@ const RsvpSection = () => {
             >
               <Plus className="w-4 h-4" /> Adicionar pessoa
             </button>
+          </div>
+
+          <div>
+            <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-2 block">
+              Seu e-mail
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+              placeholder="seuemail@exemplo.com"
+            />
           </div>
 
           <div>

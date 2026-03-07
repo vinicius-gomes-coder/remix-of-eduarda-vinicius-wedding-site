@@ -1,0 +1,1 @@
+CREATE POLICY "Anyone can update guest email" ON public.guests FOR UPDATE USING (true) WITH CHECK (true);
