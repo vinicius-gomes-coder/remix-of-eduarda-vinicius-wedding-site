@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import logoEv from "@/assets/logo-ev.png";
 
 const navLinks = [
   { label: "Início", href: "#inicio" },
@@ -32,8 +33,8 @@ const WeddingNav = () => {
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#inicio" className="font-display text-2xl font-light text-foreground tracking-widest">
-          E <span className="text-gold">&</span> V
+        <a href="#inicio">
+          <img src={logoEv} alt="E & V" className="h-12 w-auto" />
         </a>
 
         {/* Desktop */}
