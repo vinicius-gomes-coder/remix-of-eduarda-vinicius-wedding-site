@@ -46,23 +46,24 @@ const OurStorySection = () => {
             className="space-y-6"
           >
             <p className="wedding-body text-foreground">
-              Nos conhecemos da forma mais atual possível, pela internet! O que
-              começou como um encontro despretensioso no cinema para assistir
-              shazam, se transformou na mais bela história de amor.
+              Nos conhecemos de uma forma bem atual: pela internet. O que
+              começou com um encontro despretensioso no cinema para assistir
+              Shazam acabou se transformando em algo muito maior.
             </p>
             <p className="wedding-body text-foreground">
-              Desde aquele dia, cada momento juntos tem sido uma descoberta.
-              Compartilhamos sonhos, risadas e a certeza de que fomos feitos um
-              para o outro.
+              Desde então, fomos construindo nossa história juntos,
+              compartilhando sonhos, risadas e muitos momentos especiais ao
+              longo do caminho.
             </p>
             <p className="wedding-body text-foreground">
-              Agora, estamos prontos para dar o próximo passo e celebrar o nosso
-              amor com as pessoas mais especiais das nossas vidas. Você faz
-              parte dessa história.
+              Agora chegou a hora de dar o próximo passo e celebrar o nosso amor
+              ao lado das pessoas que fazem parte da nossa história... <br />E
+              você é uma delas.
             </p>
             <div className="pt-4">
               <p className="font-display text-2xl italic text-primary">
-                "O amor não se vê com os olhos, mas com o coração."
+                "Tudo tem o seu tempo determinado, e há tempo para todo
+                propósito debaixo do céu." - Eclesiastes 3:1
               </p>
             </div>
           </motion.div>

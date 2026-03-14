@@ -15,7 +15,7 @@ const CeremonySection = () => {
   ];
 
   return (
-    <section id="cerimonia" className="wedding-section" ref={ref}>
+    <section id="cerimonia" className="wedding-section bg-secondary" ref={ref}>
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

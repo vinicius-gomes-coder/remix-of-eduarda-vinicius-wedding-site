@@ -15,6 +15,7 @@ type GuestSuggestion = { id: string; name: string };
 type GuestEntry = {
   id: string;
   name: string;
+  email: string;
   status: "idle" | "valid" | "not_found" | "already_confirmed";
   guestDbId?: string;
 };
@@ -25,6 +26,7 @@ let entryIdCounter = 0;
 const newEntry = (): GuestEntry => ({
   id: `entry-${++entryIdCounter}`,
   name: "",
+  email: "",
   status: "idle",
   guestDbId: undefined,
 });
@@ -73,6 +75,12 @@ const RsvpSection = () => {
           ? { ...g, name, status: "idle", guestDbId: undefined }
           : g,
       ),
+    );
+  };
+
+  const updateGuestEmail = (entryId: string, email: string) => {
+    setGuests((prev) =>
+      prev.map((g) => (g.id === entryId ? { ...g, email } : g)),
     );
   };
 
@@ -239,7 +247,7 @@ const RsvpSection = () => {
                         onBlur={() =>
                           setTimeout(() => setShowSuggestions(false), 200)
                         }
-                        className={`w-full bg-background border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none transition-colors ${
+                        className={`w-full bg-background border rounded-sm px-4 py-3 mb-2 font-body text-sm text-foreground focus:outline-none transition-colors ${
                           entry.status === "not_found"
                             ? "border-destructive"
                             : entry.status === "already_confirmed"
@@ -253,6 +261,18 @@ const RsvpSection = () => {
                         }
                         autoComplete="off"
                       />
+                      {entry.status === "not_found" && (
+                        <p className="flex items-center gap-1 mt-1 text-xs text-destructive font-body">
+                          <AlertCircle className="w-3 h-3" /> Nome não
+                          encontrado na lista de convidados
+                        </p>
+                      )}
+                      {entry.status === "already_confirmed" && (
+                        <p className="flex items-center gap-1 mt-1 text-xs text-yellow-600 font-body">
+                          <CheckCircle2 className="w-3 h-3" /> Presença já
+                          confirmada anteriormente
+                        </p>
+                      )}
                       <AnimatePresence>
                         {showSuggestions && focusedEntryId === entry.id && (
                           <motion.ul
@@ -276,6 +296,15 @@ const RsvpSection = () => {
                           </motion.ul>
                         )}
                       </AnimatePresence>
+                      <input
+                        type="email"
+                        value={entry.email}
+                        onChange={(e) =>
+                          updateGuestEmail(entry.id, e.target.value)
+                        }
+                        className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors mt-2"
+                        placeholder="E-mail"
+                      />
                     </div>
                     {guests.length > 1 && (
                       <button
@@ -287,18 +316,6 @@ const RsvpSection = () => {
                       </button>
                     )}
                   </div>
-                  {entry.status === "not_found" && (
-                    <p className="flex items-center gap-1 mt-1 text-xs text-destructive font-body">
-                      <AlertCircle className="w-3 h-3" /> Nome não encontrado na
-                      lista de convidados
-                    </p>
-                  )}
-                  {entry.status === "already_confirmed" && (
-                    <p className="flex items-center gap-1 mt-1 text-xs text-yellow-600 font-body">
-                      <CheckCircle2 className="w-3 h-3" /> Presença já
-                      confirmada anteriormente
-                    </p>
-                  )}
                 </div>
               ))}
             </div>

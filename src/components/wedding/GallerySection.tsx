@@ -17,7 +17,7 @@ const GallerySection = () => {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="galeria" className="wedding-section bg-secondary" ref={ref}>
+    <section id="galeria" className="wedding-section" ref={ref}>
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
