@@ -17,6 +17,7 @@ const Index = () => {
       <CeremonySection />
       <GallerySection />
       <FaqSection />
+      <GiftSection />
       <RsvpSection />
       <WeddingFooter />
     </div>
