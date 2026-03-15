@@ -56,9 +56,11 @@ const OurStorySection = () => {
               longo do caminho.
             </p>
             <p className="wedding-body text-foreground">
-              Agora chegou a hora de dar o próximo passo e celebrar o nosso amor
-              ao lado das pessoas que fazem parte da nossa história... <br />E
-              você é uma delas.
+              Foi em maio que tudo começou: namoro, noivado e, agora, nesse
+              mesmo mês chegou a hora de dar o proximo passo e celebrar o nosso
+              amor ao lado das pessoas que fazem parte da nossa história...
+              <br />
+              Você é uma delas.
             </p>
             <div className="pt-4">
               <p className="font-display text-2xl italic text-primary">

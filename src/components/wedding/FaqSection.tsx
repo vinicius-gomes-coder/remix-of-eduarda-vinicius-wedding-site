@@ -4,7 +4,8 @@ import { useRef } from "react";
 const faqs = [
   {
     question: "O que devo vestir?",
-    answer: "Por gentileza, vestir traje social.",
+    answer:
+      "Por gentileza, vestir traje social.\nSomente os padrinhos e madrinhas estarão com cores padronizadas: as madrinhas usarão vestido verde oliva e os padrinhos terno cinza claro.",
   },
   {
     question: "Haverá uma recepção?",
