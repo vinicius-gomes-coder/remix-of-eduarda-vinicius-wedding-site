@@ -15,7 +15,7 @@ const faqs = [
   {
     question: "Posso levar acompanhante?",
     answer:
-      "Não, o convite é nominal e contabilizado na lista de presença de convidados. Pedimos por gentileza que respeite o nome indicado no convite.",
+      "Não. O convite é nominal e cada convidado está previamente incluído na lista de entrada. Solicitamos que o nome indicado no convite seja respeitado, pois apenas os convidados listados poderão acessar o evento. Não será permitida a entrada de “penetras” (pessoas não convidadas).",
   },
   {
     question: "Qual o endereço do evento?",
@@ -30,6 +30,11 @@ const faqs = [
     question: "Vocês irão disponibilizar chinelo para os convidados?",
     answer:
       "Não iremos oferecer chinelos no evento. Caso prefira, sugerimos que traga o seu para aproveitar a festa com mais conforto. :)",
+  },
+  {
+    question: "Haverá recreação infantil durante o casamento?",
+    answer:
+      "Não teremos recreação infantil no evento. Caso achem necessário, sugerimos que os pais levem algo para o conforto e entretenimento dos pequenos.",
   },
 ];
 

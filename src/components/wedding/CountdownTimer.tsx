@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-const WEDDING_DATE = new Date("2026-05-15T17:00:00");
+const WEDDING_DATE = new Date("2026-05-15T16:30:00");
 
 interface TimeLeft {
   dias: number;

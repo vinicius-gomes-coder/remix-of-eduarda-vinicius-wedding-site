@@ -10,7 +10,7 @@ const CeremonySection = () => {
 
   const details = [
     { icon: Calendar, label: "Data", value: "15 de Maio de 2026" },
-    { icon: Clock, label: "Horário", value: "17h00" },
+    { icon: Clock, label: "Horário", value: "16h30" },
     { icon: MapPin, label: "Local", value: "Casa Orla" },
   ];
 

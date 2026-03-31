@@ -3,13 +3,13 @@ import { useRef } from "react";
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
 import gallery3 from "@/assets/gallery-3.jpg";
-import couplePhoto from "@/assets/couple-photo.jpg";
+import gallery4 from "@/assets/gallery-4.jpg";
 
 const images = [
   { src: gallery1, alt: "Casal caminhando no jardim", span: "md:row-span-2" },
   { src: gallery2, alt: "Detalhes das alianças", span: "" },
   { src: gallery3, alt: "Casal sorrindo ao pôr do sol", span: "" },
-  { src: couplePhoto, alt: "Eduarda e Vinicius", span: "md:col-span-2" },
+  { src: gallery4, alt: "Eduarda e Vinicius", span: "md:col-span-2" },
 ];
 
 const GallerySection = () => {

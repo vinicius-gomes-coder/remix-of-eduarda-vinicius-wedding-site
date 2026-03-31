@@ -48,7 +48,7 @@ const GiftSection = () => {
             className="font-body tracking-[0.15em] uppercase text-sm px-10"
           >
             <a
-              href="https://exemplo.com/lista-de-presentes"
+              href="https://wedding-gift-site-kappa.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
             >
