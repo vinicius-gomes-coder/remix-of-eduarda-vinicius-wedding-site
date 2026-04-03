@@ -15,7 +15,7 @@ const faqs = [
   {
     question: "Posso levar acompanhante?",
     answer:
-      "Não. O convite é nominal e cada convidado está previamente incluído na lista de entrada. Solicitamos que o nome indicado no convite seja respeitado, pois apenas os convidados listados poderão acessar o evento. Não será permitida a entrada de “penetras” (pessoas não convidadas).",
+      "Não. O convite é nominal e cada convidado está previamente incluído na lista de entrada. Solicitamos que o nome indicado no convite seja respeitado, pois apenas os convidados listados poderão acessar o evento.",
   },
   {
     question: "Qual o endereço do evento?",
