@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
 const {
   buildGuestConfirmationHtml,
   buildCoupleConsolidatedHtml,
@@ -20,50 +19,52 @@ app.use(
 );
 app.use(express.json());
 
-// ─── Nodemailer transporter ──────────────────────────────────────────────────
+// ─── Brevo HTTP API ──────────────────────────────────────────────────────────
+// Usa fetch nativo (Node >= 18). Sem SMTP — funciona em qualquer cloud.
 
-const smtpPort = Number(process.env.SMTP_PORT) || 587;
-const smtpSecure = process.env.SMTP_SECURE === "true";
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: smtpPort,
-  secure: smtpSecure,          // true = porta 465 (SSL) | false = 587 (STARTTLS)
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false, // necessário em alguns provedores no Railway
-  },
-  connectionTimeout: 10000,   // 10 s
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-  pool: true,                 // reutiliza conexões
-  maxConnections: 3,
-});
+const senderName  = process.env.EMAIL_FROM_NAME    || "Eduarda & Vinicius";
+const senderEmail = process.env.EMAIL_FROM_ADDRESS;
+const brevoApiKey = process.env.BREVO_API_KEY;
 
-console.log(
-  `🔧 SMTP configurado: host=${process.env.SMTP_HOST} port=${smtpPort} secure=${smtpSecure} user=${process.env.SMTP_USER}`
-);
+if (!brevoApiKey) {
+  console.error("❌ BREVO_API_KEY não configurada. Emails não serão enviados.");
+} else {
+  console.log(`✅ Brevo API configurada — remetente: ${senderEmail}`);
+}
 
-transporter.verify((error) => {
-  if (error) {
-    console.error("❌ Falha na verificação SMTP:", error.message);
-    console.error(
-      "   Dica: Railway bloqueia SMTP direto (Gmail/Outlook).",
-      "   Use Brevo (smtp-relay.brevo.com:587) ou Resend (smtp.resend.com:465)."
-    );
-  } else {
-    console.log("✅ Conexão SMTP verificada com sucesso");
+/**
+ * Envia um email via Brevo HTTP API.
+ * @param {string}   to       — endereço destinatário
+ * @param {string}   subject
+ * @param {string}   html
+ */
+async function sendEmail(to, subject, html) {
+  const response = await fetch(BREVO_API_URL, {
+    method: "POST",
+    headers: {
+      "api-key": brevoApiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      sender:      { name: senderName, email: senderEmail },
+      to:          [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Brevo ${response.status}: ${detail}`);
   }
-});
+
+  return await response.json();
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-const FROM_ADDRESS = `"${process.env.EMAIL_FROM_NAME || "Eduarda & Vinicius"}" <${
-  process.env.EMAIL_FROM_ADDRESS
-}>`;
 
 /**
  * Agrupa convidados pelo email (case-insensitive).
@@ -95,20 +96,16 @@ function groupByEmail(guests) {
  *   guests:  Array<{ name: string; email: string }>
  *   message: string   (mensagem opcional dos convidados para o casal)
  * }
- *
- * Comportamento:
- * - Agrupa convidados com o mesmo email → 1 email consolidado por grupo
- * - Envia email individual para cada endereço único
- * - Envia email consolidado para o casal (com a mensagem dos convidados)
- * - Convidados sem email não recebem email mas aparecem no email do casal
  */
 app.post("/api/send-rsvp-emails", async (req, res) => {
   const { guests, message } = req.body;
 
   if (!Array.isArray(guests) || guests.length === 0) {
-    return res
-      .status(400)
-      .json({ error: "Lista de convidados inválida ou vazia." });
+    return res.status(400).json({ error: "Lista de convidados inválida ou vazia." });
+  }
+
+  if (!brevoApiKey) {
+    return res.status(500).json({ error: "Serviço de email não configurado." });
   }
 
   const submittedAt = new Date().toISOString();
@@ -120,12 +117,11 @@ app.post("/api/send-rsvp-emails", async (req, res) => {
 
   for (const [, { address, names }] of emailGroups) {
     try {
-      await transporter.sendMail({
-        from: FROM_ADDRESS,
-        to: address,
-        subject: "✉️ Presença confirmada — Casamento de Eduarda & Vinicius",
-        html: buildGuestConfirmationHtml(names),
-      });
+      await sendEmail(
+        address,
+        "✉️ Presença confirmada — Casamento de Eduarda & Vinicius",
+        buildGuestConfirmationHtml(names)
+      );
       guestResults.sent++;
       console.log(`📧 Email enviado → ${address} (${names.join(", ")})`);
     } catch (err) {
@@ -145,14 +141,11 @@ app.post("/api/send-rsvp-emails", async (req, res) => {
     console.warn("⚠️  COUPLE_EMAIL não configurado — email do casal não enviado.");
   } else {
     try {
-      await transporter.sendMail({
-        from: FROM_ADDRESS,
-        to: coupleEmail,
-        subject: `🎉 ${guests.length} ${
-          guests.length === 1 ? "nova confirmação" : "novas confirmações"
-        } de presença`,
-        html: buildCoupleConsolidatedHtml(guests, submittedAt, message || ""),
-      });
+      await sendEmail(
+        coupleEmail,
+        `🎉 ${guests.length} ${guests.length === 1 ? "nova confirmação" : "novas confirmações"} de presença`,
+        buildCoupleConsolidatedHtml(guests, submittedAt, message || "")
+      );
       coupleEmailSent = true;
       console.log(`📋 Email consolidado enviado para o casal (${coupleEmail})`);
     } catch (err) {
