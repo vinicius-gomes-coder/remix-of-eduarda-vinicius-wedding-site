@@ -22,21 +22,40 @@ app.use(express.json());
 
 // ─── Nodemailer transporter ──────────────────────────────────────────────────
 
+const smtpPort = Number(process.env.SMTP_PORT) || 587;
+const smtpSecure = process.env.SMTP_SECURE === "true";
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  //secure: process.env.SMTP_SECURE === "true",
+  port: smtpPort,
+  secure: smtpSecure,          // true = porta 465 (SSL) | false = 587 (STARTTLS)
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  tls: {
+    rejectUnauthorized: false, // necessário em alguns provedores no Railway
+  },
+  connectionTimeout: 10000,   // 10 s
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
+  pool: true,                 // reutiliza conexões
+  maxConnections: 3,
 });
+
+console.log(
+  `🔧 SMTP configurado: host=${process.env.SMTP_HOST} port=${smtpPort} secure=${smtpSecure} user=${process.env.SMTP_USER}`
+);
 
 transporter.verify((error) => {
   if (error) {
-    console.error("❌ Falha ao conectar ao servidor SMTP:", error.message);
+    console.error("❌ Falha na verificação SMTP:", error.message);
+    console.error(
+      "   Dica: Railway bloqueia SMTP direto (Gmail/Outlook).",
+      "   Use Brevo (smtp-relay.brevo.com:587) ou Resend (smtp.resend.com:465)."
+    );
   } else {
-    console.log("✅ Servidor SMTP conectado com sucesso");
+    console.log("✅ Conexão SMTP verificada com sucesso");
   }
 });
 
@@ -48,10 +67,10 @@ const FROM_ADDRESS = `"${process.env.EMAIL_FROM_NAME || "Eduarda & Vinicius"}" <
 
 /**
  * Agrupa convidados pelo email (case-insensitive).
- * Convidados sem email são agrupados separadamente e ignorados no envio.
+ * Convidados sem email são ignorados no envio mas incluídos no email do casal.
  *
  * @param {Array<{name: string, email: string}>} guests
- * @returns {Map<string, string[]>}  email → [nomes]
+ * @returns {Map<string, {address: string, names: string[]}>}
  */
 function groupByEmail(guests) {
   const map = new Map();
@@ -73,20 +92,23 @@ function groupByEmail(guests) {
  *
  * Body:
  * {
- *   guests: Array<{ name: string; email: string; message?: string }>
+ *   guests:  Array<{ name: string; email: string }>
+ *   message: string   (mensagem opcional dos convidados para o casal)
  * }
  *
  * Comportamento:
- * - Agrupa convidados com o mesmo email → envia 1 email consolidado por grupo
- * - Envia email separado para cada endereço único
- * - Envia email consolidado para o casal listando TODOS os confirmados
- * - Convidados sem email não recebem email mas são incluídos no email do casal
+ * - Agrupa convidados com o mesmo email → 1 email consolidado por grupo
+ * - Envia email individual para cada endereço único
+ * - Envia email consolidado para o casal (com a mensagem dos convidados)
+ * - Convidados sem email não recebem email mas aparecem no email do casal
  */
 app.post("/api/send-rsvp-emails", async (req, res) => {
-  const { guests } = req.body;
+  const { guests, message } = req.body;
 
   if (!Array.isArray(guests) || guests.length === 0) {
-    return res.status(400).json({ error: "Lista de convidados inválida ou vazia." });
+    return res
+      .status(400)
+      .json({ error: "Lista de convidados inválida ou vazia." });
   }
 
   const submittedAt = new Date().toISOString();
@@ -105,9 +127,7 @@ app.post("/api/send-rsvp-emails", async (req, res) => {
         html: buildGuestConfirmationHtml(names),
       });
       guestResults.sent++;
-      console.log(
-        `📧 Email enviado para ${address} (${names.join(", ")})`
-      );
+      console.log(`📧 Email enviado → ${address} (${names.join(", ")})`);
     } catch (err) {
       guestResults.failed++;
       console.error(`❌ Falha ao enviar para ${address}:`, err.message);
@@ -131,12 +151,12 @@ app.post("/api/send-rsvp-emails", async (req, res) => {
         subject: `🎉 ${guests.length} ${
           guests.length === 1 ? "nova confirmação" : "novas confirmações"
         } de presença`,
-        html: buildCoupleConsolidatedHtml(guests, submittedAt),
+        html: buildCoupleConsolidatedHtml(guests, submittedAt, message || ""),
       });
       coupleEmailSent = true;
       console.log(`📋 Email consolidado enviado para o casal (${coupleEmail})`);
     } catch (err) {
-      console.error("❌ Falha ao enviar email consolidado para o casal:", err.message);
+      console.error("❌ Falha ao enviar email para o casal:", err.message);
     }
   }
 

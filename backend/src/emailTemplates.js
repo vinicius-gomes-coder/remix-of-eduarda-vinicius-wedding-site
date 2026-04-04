@@ -196,8 +196,9 @@ function buildGuestConfirmationHtml(names) {
 /**
  * @param {Array<{name: string, email: string}>} confirmedGuests
  * @param {string} submittedAt — data/hora do envio (ISO string)
+ * @param {string} guestMessage — mensagem deixada pelos convidados (pode ser vazia)
  */
-function buildCoupleConsolidatedHtml(confirmedGuests, submittedAt) {
+function buildCoupleConsolidatedHtml(confirmedGuests, submittedAt, guestMessage) {
   const dateStr = new Date(submittedAt).toLocaleString("pt-BR", {
     timeZone: "America/Sao_Paulo",
     day: "2-digit",
@@ -291,6 +292,25 @@ function buildCoupleConsolidatedHtml(confirmedGuests, submittedAt) {
                   ${guestRows}
                 </tbody>
               </table>
+
+              ${guestMessage ? `
+              <!-- Mensagem dos convidados -->
+              <p style="margin:0 0 8px;font-family:'Helvetica Neue',sans-serif;font-size:10px;
+                        letter-spacing:2px;text-transform:uppercase;color:#8a7d6b;">
+                Mensagem dos convidados
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                <tr>
+                  <td style="background:#f0ebe3;border-left:3px solid #4a7c59;
+                             padding:16px 20px;border-radius:0 2px 2px 0;">
+                    <p style="margin:0;font-family:'Georgia',serif;font-size:16px;
+                              color:#2d4a3e;line-height:1.7;font-style:italic;">
+                      "${guestMessage.replace(/\n/g, "<br/>")}"
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              ` : ""}
 
               <p style="margin:0;font-family:'Helvetica Neue',sans-serif;font-size:13px;
                         color:#8a7d6b;line-height:1.6;">

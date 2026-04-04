@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+// URL do backend Express — ajuste para produção via variável de ambiente
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 type GuestSuggestion = { id: string; name: string };
 
 type GuestEntry = {
@@ -40,7 +43,6 @@ const RsvpSection = () => {
   const [message, setMessage] = useState("");
   const [confirmedNames, setConfirmedNames] = useState<string[]>([]);
 
-  // Suggestions state — only for the focused entry
   const [focusedEntryId, setFocusedEntryId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<GuestSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -60,7 +62,6 @@ const RsvpSection = () => {
     setShowSuggestions((data || []).length > 0);
   }, []);
 
-  // Debounce search for the focused entry
   const focusedGuest = guests.find((g) => g.id === focusedEntryId);
   useEffect(() => {
     if (!focusedGuest) return;
@@ -104,6 +105,28 @@ const RsvpSection = () => {
     setGuests((prev) => prev.filter((g) => g.id !== entryId));
   };
 
+  /**
+   * Chama o backend Express para enviar os emails.
+   * Best-effort: não bloqueia o fluxo se falhar.
+   */
+  const sendEmails = async (
+    confirmedGuests: Array<{ name: string; email: string }>,
+    guestMessage: string,
+  ) => {
+    try {
+      await fetch(`${API_URL}/api/send-rsvp-emails`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          guests: confirmedGuests,
+          message: guestMessage,
+        }),
+      });
+    } catch (err) {
+      console.error("Erro ao enviar emails:", err);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPhase("submitting");
@@ -117,7 +140,6 @@ const RsvpSection = () => {
         continue;
       }
 
-      // Look up guest
       const { data: found } = await supabase
         .from("convidados")
         .select("*")
@@ -128,7 +150,7 @@ const RsvpSection = () => {
         continue;
       }
 
-      if (found && found[0].confirmed) {
+      if (found[0].confirmed) {
         validated.push({
           ...entry,
           status: "already_confirmed",
@@ -137,10 +159,7 @@ const RsvpSection = () => {
         continue;
       }
 
-      if (found && !found[0].confirmed) {
-        validated.push({ ...entry, status: "valid", guestDbId: found[0].id });
-        continue;
-      }
+      validated.push({ ...entry, status: "valid", guestDbId: found[0].id });
     }
 
     setGuests(validated);
@@ -150,32 +169,36 @@ const RsvpSection = () => {
     );
     const hasErrors = validated.some((g) => g.status === "not_found");
 
-    if (toConfirm.length === 0) {
-      // Nothing to confirm, show form with errors
+    if (toConfirm.length === 0 || hasErrors) {
       setPhase("form");
       return;
     }
 
-    if (hasErrors) {
-      // Some invalid — show form with statuses so user can fix
-      setPhase("form");
-      return;
-    }
-
-    // All valid — confirm and save email
+    // Confirma no banco de dados
     for (const guest of toConfirm) {
-      const entry = validated.find((g) => g.id === guest.id);
       await supabase
         .from("convidados" as any)
-        .update({ confirmed: true, email: entry?.email?.trim() || null })
+        .update({ confirmed: true, email: guest.email?.trim() || null })
         .eq("id", guest.guestDbId);
     }
+
+    // Envia emails via backend Express (best-effort)
+    await sendEmails(
+      toConfirm.map((g) => ({
+        name: g.name.trim(),
+        email: g.email?.trim() || "",
+      })),
+      message.trim(),
+    );
 
     setConfirmedNames(toConfirm.map((g) => g.name.trim()));
     setPhase("done");
   };
 
+  // ─── Tela de sucesso ───────────────────────────────────────────────────────
+
   if (phase === "done") {
+    const hasEmails = confirmedNames.length > 0;
     return (
       <section id="rsvp" className="wedding-section" ref={ref}>
         <div className="max-w-2xl mx-auto">
@@ -194,11 +217,19 @@ const RsvpSection = () => {
                 : `Presenças confirmadas: ${confirmedNames.join(", ")}.`}{" "}
               Mal podemos esperar para celebrar este dia especial com vocês!
             </p>
+            {hasEmails && (
+              <p className="font-body text-sm text-muted-foreground mt-4 opacity-70">
+                Se você informou seu e-mail, em breve receberá uma confirmação
+                por lá. 💌
+              </p>
+            )}
           </motion.div>
         </div>
       </section>
     );
   }
+
+  // ─── Formulário ────────────────────────────────────────────────────────────
 
   return (
     <section id="rsvp" className="wedding-section" ref={ref}>
@@ -229,11 +260,13 @@ const RsvpSection = () => {
             <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-3 block">
               Nomes dos convidados
             </label>
+
             <div className="space-y-3">
               {guests.map((entry, index) => (
                 <div key={entry.id} className="relative">
                   <div className="flex gap-2 items-start">
                     <div className="flex-1 relative">
+                      {/* Campo nome */}
                       <input
                         type="text"
                         required
@@ -260,18 +293,22 @@ const RsvpSection = () => {
                         }
                         autoComplete="off"
                       />
+
+                      {/* Mensagens de status */}
                       {entry.status === "not_found" && (
-                        <p className="flex items-center gap-1 mt-1 text-xs text-destructive font-body">
+                        <p className="flex items-center gap-1 mt-1 mb-2 text-xs text-destructive font-body">
                           <AlertCircle className="w-3 h-3" /> Nome não
                           encontrado na lista de convidados
                         </p>
                       )}
                       {entry.status === "already_confirmed" && (
-                        <p className="flex items-center gap-1 mt-1 text-xs text-yellow-600 font-body">
+                        <p className="flex items-center gap-1 mt-1 mb-2 text-xs text-yellow-600 font-body">
                           <CheckCircle2 className="w-3 h-3" /> Presença já
                           confirmada anteriormente
                         </p>
                       )}
+
+                      {/* Sugestões de autocomplete */}
                       <AnimatePresence>
                         {showSuggestions && focusedEntryId === entry.id && (
                           <motion.ul
@@ -295,16 +332,19 @@ const RsvpSection = () => {
                           </motion.ul>
                         )}
                       </AnimatePresence>
+
+                      {/* Campo e-mail */}
                       <input
                         type="email"
                         value={entry.email}
                         onChange={(e) =>
                           updateGuestEmail(entry.id, e.target.value)
                         }
-                        className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors mt-2"
-                        placeholder="E-mail"
+                        className="w-full bg-background border border-border rounded-sm px-4 py-3 font-body text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                        placeholder="E-mail para receber confirmação (opcional)"
                       />
                     </div>
+
                     {guests.length > 1 && (
                       <button
                         type="button"
@@ -318,6 +358,7 @@ const RsvpSection = () => {
                 </div>
               ))}
             </div>
+
             <button
               type="button"
               onClick={addGuest}
@@ -327,6 +368,7 @@ const RsvpSection = () => {
             </button>
           </div>
 
+          {/* Mensagem opcional */}
           <div>
             <label className="font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-2 block">
               Mensagem para os noivos (opcional)
