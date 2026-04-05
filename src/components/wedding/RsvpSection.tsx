@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 // URL do backend Express — ajuste para produção via variável de ambiente
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-type GuestSuggestion = { id: string; name: string };
+type GuestSuggestion = { id: number; name: string };
 
 type GuestEntry = {
   id: string;
@@ -53,13 +53,11 @@ const RsvpSection = () => {
       setShowSuggestions(false);
       return;
     }
-    const { data } = await supabase
-      .from("convidados")
-      .select("id, name")
-      .ilike("name", `%${query.trim()}%`)
-      .limit(5);
-    setSuggestions(data || []);
-    setShowSuggestions((data || []).length > 0);
+    const { data } = await supabase.rpc("search_convidados", {
+      query: query.trim(),
+    });
+    setSuggestions((data as GuestSuggestion[]) || []);
+    setShowSuggestions(((data as GuestSuggestion[]) || []).length > 0);
   }, []);
 
   const focusedGuest = guests.find((g) => g.id === focusedEntryId);
@@ -140,26 +138,39 @@ const RsvpSection = () => {
         continue;
       }
 
-      const { data: found } = await supabase
-        .from("convidados")
-        .select("*")
-        .ilike("name", trimmed);
+      // Busca via RPC (ignora acentos) e depois filtra pelo nome exato
+      const { data: searchData } = await supabase.rpc("search_convidados", {
+        query: trimmed,
+      });
+      const found = searchData as Array<{ id: string; name: string }> | null;
 
       if (!found || found.length === 0) {
         validated.push({ ...entry, status: "not_found" });
         continue;
       }
 
-      if (found[0].confirmed) {
+      // Busca o registro completo (com campo confirmed) pelo id encontrado
+      const { data: fullRecord } = await supabase
+        .from("convidados")
+        .select("*")
+        .eq("id", found[0].id)
+        .single();
+
+      if (!fullRecord) {
+        validated.push({ ...entry, status: "not_found" });
+        continue;
+      }
+
+      if (fullRecord.confirmed) {
         validated.push({
           ...entry,
           status: "already_confirmed",
-          guestDbId: found[0].id,
+          guestDbId: fullRecord.id,
         });
         continue;
       }
 
-      validated.push({ ...entry, status: "valid", guestDbId: found[0].id });
+      validated.push({ ...entry, status: "valid", guestDbId: fullRecord.id });
     }
 
     setGuests(validated);
